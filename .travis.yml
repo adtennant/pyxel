@@ -7,4 +7,16 @@ rust:
   - stable
   - beta
   - nightly
+env:
+  - FEATURES=''
+  - FEATURES='images'
 cache: cargo
+script:
+  - |
+    if [ -z "$FEATURES" ]; then
+      cargo build --verbose
+      cargo test --verbose
+    else
+      cargo build --features "$FEATURES" --verbose
+      cargo test --features "$FEATURES" --verbose
+    fi
