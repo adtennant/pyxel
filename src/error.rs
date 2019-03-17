@@ -1,3 +1,5 @@
+use std::{error::Error, fmt};
+
 /// An enumeration of Pyxel errors.
 #[derive(Debug)]
 pub enum PyxelError {
@@ -12,6 +14,37 @@ pub enum PyxelError {
 
     /// An error occured whilst loading an image.
     Image(image::ImageError),
+}
+
+impl fmt::Display for PyxelError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            PyxelError::Io(ref e) => e.fmt(f),
+            PyxelError::Zip(ref e) => e.fmt(f),
+            PyxelError::Serde(ref e) => e.fmt(f),
+            PyxelError::Image(ref e) => e.fmt(f),
+        }
+    }
+}
+
+impl Error for PyxelError {
+    fn description(&self) -> &str {
+        match *self {
+            PyxelError::Io(ref e) => e.description(),
+            PyxelError::Zip(ref e) => e.description(),
+            PyxelError::Serde(ref e) => e.description(),
+            PyxelError::Image(ref e) => e.description(),
+        }
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        match *self {
+            PyxelError::Io(ref e) => Some(e),
+            PyxelError::Zip(ref e) => Some(e),
+            PyxelError::Serde(ref e) => Some(e),
+            PyxelError::Image(ref e) => Some(e),
+        }
+    }
 }
 
 impl std::convert::From<std::io::Error> for PyxelError {
