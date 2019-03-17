@@ -13,6 +13,7 @@ pub enum PyxelError {
     Serde(serde_json::error::Error),
 
     /// An error occured whilst loading an image.
+    #[cfg(feature = "images")]
     Image(image::ImageError),
 }
 
@@ -22,6 +23,7 @@ impl fmt::Display for PyxelError {
             PyxelError::Io(ref e) => e.fmt(f),
             PyxelError::Zip(ref e) => e.fmt(f),
             PyxelError::Serde(ref e) => e.fmt(f),
+            #[cfg(feature = "images")]
             PyxelError::Image(ref e) => e.fmt(f),
         }
     }
@@ -33,6 +35,7 @@ impl Error for PyxelError {
             PyxelError::Io(ref e) => e.description(),
             PyxelError::Zip(ref e) => e.description(),
             PyxelError::Serde(ref e) => e.description(),
+            #[cfg(feature = "images")]
             PyxelError::Image(ref e) => e.description(),
         }
     }
@@ -42,6 +45,7 @@ impl Error for PyxelError {
             PyxelError::Io(ref e) => Some(e),
             PyxelError::Zip(ref e) => Some(e),
             PyxelError::Serde(ref e) => Some(e),
+            #[cfg(feature = "images")]
             PyxelError::Image(ref e) => Some(e),
         }
     }
@@ -65,6 +69,7 @@ impl std::convert::From<serde_json::error::Error> for PyxelError {
     }
 }
 
+#[cfg(feature = "images")]
 impl std::convert::From<image::ImageError> for PyxelError {
     fn from(err: image::ImageError) -> PyxelError {
         PyxelError::Image(err)

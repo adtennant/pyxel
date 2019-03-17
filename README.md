@@ -24,6 +24,12 @@ let doc = pyxel::open("resources/doc.pyxel")?;
 
 See the [docs](https://docs.rs/pyxel) for more information.
 
+## Optional Features
+
+The following features are available:
+
+- **`images`** — Can be used to automatically load layer and tileset images within the Pyxel document using [`image`](https://crates.io/crates/image).
+
 ## License
 
 [MIT](https://github.com/adtennant/morgan-console/blob/master/LICENSE)

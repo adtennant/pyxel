@@ -169,6 +169,7 @@ pub enum BlendMode {
     Subtract,
 }
 
+#[cfg(feature = "images")]
 fn default_image() -> image::DynamicImage {
     image::DynamicImage::new_rgba8(1, 1)
 }
@@ -190,6 +191,11 @@ pub struct Layer {
     #[serde(rename = "tileRefs")]
     tile_refs: BTreeMap<usize, TileRef>,
 
+    #[cfg(not(feature = "images"))]
+    #[serde(skip)]
+    image: Vec<u8>,
+
+    #[cfg(feature = "images")]
     #[derivative(Debug = "ignore")]
     #[serde(default = "default_image", skip)]
     image: image::DynamicImage,
@@ -231,7 +237,14 @@ impl Layer {
         &self.tile_refs
     }
 
+    /// Returns the raw bytes of the image for this layer.
+    #[cfg(not(feature = "images"))]
+    pub fn image(&self) -> &Vec<u8> {
+        &self.image
+    }
+
     /// Returns the image for this layer.
+    #[cfg(feature = "images")]
     pub fn image(&self) -> &image::DynamicImage {
         &self.image
     }
@@ -302,6 +315,11 @@ pub struct Tileset {
     #[serde(rename = "tilesWide")]
     tiles_wide: u64,
 
+    #[cfg(not(feature = "images"))]
+    #[serde(skip)]
+    images: Vec<Vec<u8>>,
+
+    #[cfg(feature = "images")]
     #[derivative(Debug = "ignore")]
     #[serde(skip)]
     images: Vec<image::DynamicImage>,
@@ -328,7 +346,14 @@ impl Tileset {
         self.tiles_wide
     }
 
+    /// Returns raw bytes of the images for the tiles in this tileset.
+    #[cfg(not(feature = "images"))]
+    pub fn images(&self) -> &Vec<Vec<u8>> {
+        &self.images
+    }
+
     /// Returns the images for the tiles in this tileset.
+    #[cfg(feature = "images")]
     pub fn images(&self) -> &Vec<image::DynamicImage> {
         &self.images
     }
@@ -427,6 +452,22 @@ impl Pyxel {
     }
 }
 
+#[cfg(not(feature = "images"))]
+fn load_image_from_zip<R: std::io::Read + std::io::Seek>(
+    zip: &mut zip::ZipArchive<R>,
+    path: &str,
+) -> Result<Vec<u8>, PyxelError> {
+    use std::io::Read;
+
+    let mut file = zip.by_name(path)?;
+
+    let mut buf = Vec::new();
+    file.read_to_end(&mut buf)?;
+
+    Ok(buf)
+}
+
+#[cfg(feature = "images")]
 fn load_image_from_zip<R: std::io::Read + std::io::Seek>(
     zip: &mut zip::ZipArchive<R>,
     path: &str,
