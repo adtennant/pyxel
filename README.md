@@ -13,7 +13,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-pyxel = "0.1.2"
+pyxel = "0.2.0"
 ```
 
 Then open a `.pyxel` file like this:
