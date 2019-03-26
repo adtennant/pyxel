@@ -1,6 +1,6 @@
 [package]
 name = "pyxel"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Alex Tennant <alex@adtennant.co.uk>"]
 edition = "2018"
 description = "Pyxel is a library for loading [PyxelEdit](https://pyxeledit.com) documents in Rust"
