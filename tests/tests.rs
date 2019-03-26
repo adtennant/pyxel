@@ -234,7 +234,12 @@ fn check_v0_4_8(doc: Pyxel) {
     assert_eq!(16, doc.tileset().tile_height());
     assert_eq!(32, doc.tileset().tile_width());
     assert_eq!(8, doc.tileset().tiles_wide());
+
+    #[cfg(not(feature = "images"))]
     assert_eq!(4, doc.tileset().image_data().len());
+
+    #[cfg(feature = "images")]
+    assert_eq!(4, doc.tileset().images().len());
 
     // version
     assert_eq!(Version::parse("0.4.8").unwrap(), *doc.version());
