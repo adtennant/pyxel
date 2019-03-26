@@ -68,12 +68,12 @@ pub struct Palette {
     #[serde(deserialize_with = "deserialize_map_as_vec")]
     colors: Vec<Option<Color>>,
 
-    height: u64,
+    height: u8,
 
     #[serde(rename = "numColors")]
     num_colors: usize,
 
-    width: u64,
+    width: u8,
 }
 
 impl Palette {
@@ -83,12 +83,12 @@ impl Palette {
     }
 
     /// Returns the height of this palette when displayed in the PyxelEdit UI.
-    pub fn height(&self) -> u64 {
+    pub fn height(&self) -> u8 {
         self.height
     }
 
     /// Returns the width of this palette when displayed in the PyxelEdit UI.
-    pub fn width(&self) -> u64 {
+    pub fn width(&self) -> u8 {
         self.width
     }
 }
@@ -193,7 +193,7 @@ pub struct Layer {
 
     #[cfg(not(feature = "images"))]
     #[serde(skip)]
-    image: Vec<u8>,
+    image_data: Vec<u8>,
 
     #[cfg(feature = "images")]
     #[derivative(Debug = "ignore")]
@@ -239,8 +239,8 @@ impl Layer {
 
     /// Returns the raw bytes of the image for this layer.
     #[cfg(not(feature = "images"))]
-    pub fn image(&self) -> &Vec<u8> {
-        &self.image
+    pub fn image_data(&self) -> &Vec<u8> {
+        &self.image_data
     }
 
     /// Returns the image for this layer.
@@ -255,18 +255,18 @@ impl Layer {
 pub struct Canvas {
     #[serde(deserialize_with = "deserialize_map_as_vec")]
     layers: Vec<Layer>,
-    height: u64,
+    height: i32,
 
     #[serde(rename = "numLayers")]
     num_layers: usize,
 
     #[serde(rename = "tileHeight")]
-    tile_height: u64,
+    tile_height: u16,
 
     #[serde(rename = "tileWidth")]
-    tile_width: u64,
+    tile_width: u16,
 
-    width: u64,
+    width: i32,
 }
 
 impl Canvas {
@@ -276,22 +276,22 @@ impl Canvas {
     }
 
     /// Returns the height of this canvas in pixels.
-    pub fn height(&self) -> u64 {
+    pub fn height(&self) -> i32 {
         self.height
     }
 
     /// Returns the height of the tiles in this canvas in pixels.
-    pub fn tile_height(&self) -> u64 {
+    pub fn tile_height(&self) -> u16 {
         self.tile_height
     }
 
     /// Returns the width of the tiles in this canvas in pixels.
-    pub fn tile_width(&self) -> u64 {
+    pub fn tile_width(&self) -> u16 {
         self.tile_width
     }
 
     /// Returns the width of this canvas in pixels.
-    pub fn width(&self) -> u64 {
+    pub fn width(&self) -> i32 {
         self.width
     }
 }
@@ -307,17 +307,17 @@ pub struct Tileset {
     num_tiles: usize,
 
     #[serde(rename = "tileHeight")]
-    tile_height: u64,
+    tile_height: u16,
 
     #[serde(rename = "tileWidth")]
-    tile_width: u64,
+    tile_width: u16,
 
     #[serde(rename = "tilesWide")]
-    tiles_wide: u64,
+    tiles_wide: u8,
 
     #[cfg(not(feature = "images"))]
     #[serde(skip)]
-    images: Vec<Vec<u8>>,
+    image_data: Vec<Vec<u8>>,
 
     #[cfg(feature = "images")]
     #[derivative(Debug = "ignore")]
@@ -332,24 +332,24 @@ impl Tileset {
     }
 
     /// Returns the tile height in pixels of the tiles in this tileset.
-    pub fn tile_height(&self) -> u64 {
+    pub fn tile_height(&self) -> u16 {
         self.tile_height
     }
 
     /// Returns the tile width in pixels of the tiles in this tileset.
-    pub fn tile_width(&self) -> u64 {
+    pub fn tile_width(&self) -> u16 {
         self.tile_width
     }
 
     /// Returns the width of this tileset when displayed in the PyxelEdit UI.
-    pub fn tiles_wide(&self) -> u64 {
+    pub fn tiles_wide(&self) -> u8 {
         self.tiles_wide
     }
 
     /// Returns raw bytes of the images for the tiles in this tileset.
     #[cfg(not(feature = "images"))]
-    pub fn images(&self) -> &Vec<Vec<u8>> {
-        &self.images
+    pub fn image_data(&self) -> &Vec<Vec<u8>> {
+        &self.image_data
     }
 
     /// Returns the images for the tiles in this tileset.
@@ -453,7 +453,7 @@ impl Pyxel {
 }
 
 #[cfg(not(feature = "images"))]
-fn load_image_from_zip<R: std::io::Read + std::io::Seek>(
+fn load_image_data_from_zip<R: std::io::Read + std::io::Seek>(
     zip: &mut zip::ZipArchive<R>,
     path: &str,
 ) -> Result<Vec<u8>, PyxelError> {
@@ -502,13 +502,29 @@ pub fn load<R: std::io::Read + std::io::Seek>(r: R) -> Result<Pyxel, PyxelError>
     let mut pyxel: Pyxel = serde_json::from_reader(data)?;
 
     for i in 0..pyxel.canvas().num_layers {
-        let image = load_image_from_zip(&mut archive, &format!("layer{}.png", i))?;
-        pyxel.canvas.layers[i].image = image;
+        #[cfg(not(feature = "images"))]
+        {
+            let image_data = load_image_data_from_zip(&mut archive, &format!("layer{}.png", i))?;
+            pyxel.canvas.layers[i].image_data = image_data;
+        }
+        #[cfg(feature = "images")]
+        {
+            let image = load_image_from_zip(&mut archive, &format!("layer{}.png", i))?;
+            pyxel.canvas.layers[i].image = image;
+        }
     }
 
     for i in 0..pyxel.tileset().num_tiles {
-        let image = load_image_from_zip(&mut archive, &format!("tile{}.png", i))?;
-        pyxel.tileset.images.insert(i, image);
+        #[cfg(not(feature = "images"))]
+        {
+            let image_data = load_image_data_from_zip(&mut archive, &format!("layer{}.png", i))?;
+            pyxel.tileset.image_data.insert(i, image_data);
+        }
+        #[cfg(feature = "images")]
+        {
+            let image = load_image_from_zip(&mut archive, &format!("tile{}.png", i))?;
+            pyxel.tileset.images.insert(i, image);
+        }
     }
 
     Ok(pyxel)
