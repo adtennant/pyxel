@@ -517,7 +517,7 @@ pub fn load<R: std::io::Read + std::io::Seek>(r: R) -> Result<Pyxel, PyxelError>
     for i in 0..pyxel.tileset().num_tiles {
         #[cfg(not(feature = "images"))]
         {
-            let image_data = load_image_data_from_zip(&mut archive, &format!("layer{}.png", i))?;
+            let image_data = load_image_data_from_zip(&mut archive, &format!("tile{}.png", i))?;
             pyxel.tileset.image_data.insert(i, image_data);
         }
         #[cfg(feature = "images")]
